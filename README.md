@@ -9,7 +9,7 @@
 
 ---
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [Overview](#overview)
 - [How Phishing Works](#how-phishing-works)
@@ -151,7 +151,7 @@ python -m http.server 8080
 
 Then navigate to `http://localhost:8080` in your browser.
 
-> ⚠️ **Important:** The Flask server must be running on port 5000 for the frontend to work.
+>  **Important:** The Flask server must be running on port 5000 for the frontend to work.
 
 ---
 
@@ -298,10 +298,6 @@ Each of the 8 checks adds +1 to the score:
 
 ---
 
-## License
 
-MIT © 2024 — Built for cybersecurity portfolio demonstration purposes.
-
----
 
 *PhishGuard does not provide 100% accurate phishing detection. It is an educational tool demonstrating rule-based heuristic analysis. For production use, integrate with threat intelligence APIs.*
