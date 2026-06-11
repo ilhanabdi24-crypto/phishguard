@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard — Create Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="scanline"></div>
+
+  <div class="auth-wrap">
+
+    <!-- Left panel — branding -->
+    <div class="auth-left">
+      <div class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">PHISH<span>GUARD</span></span>
+      </div>
+      <div class="brand-body">
+        <h1>Join the defense<br/>network.</h1>
+        <p>Create your free account and start analyzing suspicious URLs with professional-grade threat detection.</p>
+        <div class="feature-list">
+          <div class="feat"><span class="feat-dot"></span>Free forever</div>
+          <div class="feat"><span class="feat-dot"></span>Unlimited URL scans</div>
+          <div class="feat"><span class="feat-dot"></span>Private scan history</div>
+          <div class="feat"><span class="feat-dot"></span>No credit card required</div>
+        </div>
+      </div>
+      <div class="brand-footer">PhishGuard v2.0 — Cybersecurity Portfolio</div>
+    </div>
+
+    <!-- Right panel — form -->
+    <div class="auth-right">
+      <div class="form-card">
+
+        <div class="form-header">
+          <div class="form-tag">CREATE ACCOUNT</div>
+          <h2>Get started free</h2>
+          <p>Set up your PhishGuard account in seconds</p>
+        </div>
+
+        <div id="error-box" class="error-box hidden"></div>
+        <div id="success-box" class="success-box hidden"></div>
+
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">USERNAME</label>
+            <div class="field-wrap">
+              <span class="field-icon">◈</span>
+              <input type="text" id="username" class="field-input" placeholder="choose a username" autocomplete="username" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">EMAIL ADDRESS</label>
+            <div class="field-wrap">
+              <span class="field-icon">◎</span>
+              <input type="email" id="email" class="field-input" placeholder="you@example.com" autocomplete="email" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">PASSWORD</label>
+            <div class="field-wrap">
+              <span class="field-icon">◉</span>
+              <input type="password" id="password" class="field-input" placeholder="min. 6 characters" autocomplete="new-password" />
+              <button type="button" class="toggle-pw" onclick="togglePassword('password', this)">SHOW</button>
+            </div>
+            <div class="pw-strength" id="pw-strength"></div>
+          </div>
+
+          <button class="btn-submit" id="signup-btn" onclick="handleSignup()">
+            <span id="btn-text">CREATE ACCOUNT</span>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <div class="form-divider"><span>or</span></div>
+
+          <div class="form-switch">
+            Already have an account?
+            <a href="login.html">Sign in →</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000";
+
+    // Password strength indicator
+    document.getElementById("password").addEventListener("input", function() {
+      const val = this.value;
+      const el  = document.getElementById("pw-strength");
+      if (!val) { el.textContent = ""; el.className = "pw-strength"; return; }
+
+      if (val.length < 6) {
+        el.textContent = "Too short";
+        el.className = "pw-strength weak";
+      } else if (val.length < 10 || !/[0-9]/.test(val)) {
+        el.textContent = "Fair";
+        el.className = "pw-strength fair";
+      } else {
+        el.textContent = "Strong";
+        el.className = "pw-strength strong";
+      }
+    });
+
+    async function handleSignup() {
+      const username = document.getElementById("username").value.trim();
+      const email    = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("signup-btn");
+      const btnText  = document.getElementById("btn-text");
+
+      clearMessages();
+
+      if (!username || !email || !password) {
+        showError("Please fill in all fields.");
+        return;
+      }
+
+      if (password.length < 6) {
+        showError("Password must be at least 6 characters.");
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.textContent = "CREATING...";
+
+      try {
+        const res = await fetch(`${API}/signup`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || "Signup failed.");
+          return;
+        }
+
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+
+        showSuccess("Account created! Redirecting to dashboard...");
+        setTimeout(() => { window.location.href = "index.html"; }, 1000);
+
+      } catch (err) {
+        showError("Cannot reach server. Make sure Flask is running on port 5000.");
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "CREATE ACCOUNT";
+      }
+    }
+
+    function togglePassword(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "HIDE";
+      } else {
+        input.type = "password";
+        btn.textContent = "SHOW";
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById("error-box");
+      el.textContent = "⚠ " + msg;
+      el.classList.remove("hidden");
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById("success-box");
+      el.textContent = "✓ " + msg;
+      el.classList.remove("hidden");
+    }
+
+    function clearMessages() {
+      document.getElementById("error-box").classList.add("hidden");
+      document.getElementById("success-box").classList.add("hidden");
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleSignup();
+    });
+
+    if (localStorage.getItem("token")) {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard — Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="auth.css" />
+</head>
+<body>
+
+  <div class="bg-grid"></div>
+  <div class="scanline"></div>
+
+  <div class="auth-wrap">
+
+    <!-- Left panel — branding -->
+    <div class="auth-left">
+      <div class="brand">
+        <span class="brand-icon">⬡</span>
+        <span class="brand-name">PHISH<span>GUARD</span></span>
+      </div>
+      <div class="brand-body">
+        <h1>Detect threats.<br/>Stay protected.</h1>
+        <p>AI-powered phishing URL detection across 8 threat vectors. Built for cybersecurity professionals.</p>
+        <div class="feature-list">
+          <div class="feat"><span class="feat-dot"></span>Real-time URL analysis</div>
+          <div class="feat"><span class="feat-dot"></span>SSL & DNS verification</div>
+          <div class="feat"><span class="feat-dot"></span>Personal scan history</div>
+          <div class="feat"><span class="feat-dot"></span>Risk scoring dashboard</div>
+        </div>
+      </div>
+      <div class="brand-footer">PhishGuard v2.0 — Cybersecurity Portfolio</div>
+    </div>
+
+    <!-- Right panel — form -->
+    <div class="auth-right">
+      <div class="form-card">
+
+        <div class="form-header">
+          <div class="form-tag">SECURE ACCESS</div>
+          <h2>Welcome back</h2>
+          <p>Sign in to your PhishGuard account</p>
+        </div>
+
+        <div id="error-box" class="error-box hidden"></div>
+        <div id="success-box" class="success-box hidden"></div>
+
+        <div class="form-body">
+
+          <div class="field-group">
+            <label class="field-label">USERNAME</label>
+            <div class="field-wrap">
+              <span class="field-icon">◈</span>
+              <input type="text" id="username" class="field-input" placeholder="your username" autocomplete="username" />
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label">PASSWORD</label>
+            <div class="field-wrap">
+              <span class="field-icon">◉</span>
+              <input type="password" id="password" class="field-input" placeholder="••••••••" autocomplete="current-password" />
+              <button type="button" class="toggle-pw" onclick="togglePassword('password', this)">SHOW</button>
+            </div>
+          </div>
+
+          <button class="btn-submit" id="login-btn" onclick="handleLogin()">
+            <span id="btn-text">SIGN IN</span>
+            <span class="btn-arrow">→</span>
+          </button>
+
+          <div class="form-divider"><span>or</span></div>
+
+          <div class="form-switch">
+            Don't have an account?
+            <a href="signup.html">Create one →</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const API = "http://127.0.0.1:5000";
+
+    async function handleLogin() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value;
+      const btn      = document.getElementById("login-btn");
+      const btnText  = document.getElementById("btn-text");
+
+      clearMessages();
+
+      if (!username || !password) {
+        showError("Please fill in all fields.");
+        return;
+      }
+
+      btn.disabled = true;
+      btnText.textContent = "SIGNING IN...";
+
+      try {
+        const res = await fetch(`${API}/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || "Login failed.");
+          return;
+        }
+
+        // Store token and username
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("username", data.username);
+
+        showSuccess("Login successful! Redirecting...");
+        setTimeout(() => { window.location.href = "index.html"; }, 800);
+
+      } catch (err) {
+        showError("Cannot reach server. Make sure Flask is running on port 5000.");
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "SIGN IN";
+      }
+    }
+
+    function togglePassword(id, btn) {
+      const input = document.getElementById(id);
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "HIDE";
+      } else {
+        input.type = "password";
+        btn.textContent = "SHOW";
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById("error-box");
+      el.textContent = "⚠ " + msg;
+      el.classList.remove("hidden");
+    }
+
+    function showSuccess(msg) {
+      const el = document.getElementById("success-box");
+      el.textContent = "✓ " + msg;
+      el.classList.remove("hidden");
+    }
+
+    function clearMessages() {
+      document.getElementById("error-box").classList.add("hidden");
+      document.getElementById("success-box").classList.add("hidden");
+    }
+
+    // Enter key support
+    document.addEventListener("keydown", e => {
+      if (e.key === "Enter") handleLogin();
+    });
+
+    // Redirect if already logged in
+    if (localStorage.getItem("token")) {
+      window.location.href = "index.html";
+    }
+  </script>
+
+</body>
+</html>
